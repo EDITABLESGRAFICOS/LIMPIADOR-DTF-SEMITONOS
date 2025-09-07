@@ -176,7 +176,23 @@
     }
   });
 
-  // Limpiar imagen
+  // Obtener siguiente nombre de archivo (almacenado en localStorage)
+  function getNextFilename() {
+    try {
+      const key = 'limpiador_download_index';
+      let idx = parseInt(localStorage.getItem(key) || '0', 10);
+      if (isNaN(idx)) idx = 0;
+      idx = idx + 1;
+      localStorage.setItem(key, idx);
+      return `imagen_limpia_${idx}.png`;
+    } catch (e) {
+      // Si localStorage falla (modo privado o bloqueo), usar timestamp
+      const ts = Date.now();
+      return `imagen_limpia_${ts}.png`;
+    }
+  }
+
+  // Limpiar imagen y descargar con nombre incremental
   cleanBtn.addEventListener('click', () => {
     if (!originalImage) return;
 
@@ -197,13 +213,14 @@
 
     ctxProcessed.putImageData(imgData, 0, 0);
 
-    // Descargar automáticamente
+    // Descargar automáticamente con nombre incremental
+    const filename = getNextFilename();
     const link = document.createElement('a');
-    link.download = 'imagen_limpia.png';
+    link.download = filename;
     link.href = canvasProcessed.toDataURL();
     link.click();
 
-    showToast(`🧹 Se limpiaron ${semitransparentPixels} píxeles semitransparentes.`);
+    showToast(`🧹 Se limpiaron ${semitransparentPixels} píxeles. Guardado como ${filename}`);
   });
 
   // Cargar íconos Lucide
