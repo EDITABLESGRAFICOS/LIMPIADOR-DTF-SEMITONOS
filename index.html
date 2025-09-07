@@ -8,23 +8,25 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col items-center p-6">
+<body class="bg-gray-900 text-gray-200 min-h-screen flex flex-col items-center p-6">
 
-    <!-- Logo -->
+  <!-- Logo -->
   <img src="https://taplink.st/a/7/a/4/9/c337e8.png" alt="Logo" class="mb-4 max-h-28">
+
   <!-- Header -->
-  <h1 class="text-3xl font-bold text-blue-600 mb-6"> Limpiador de Semitonos</h1>
-<p class="text-gray-600 max-w-2xl text-center mb-6">
-  Esta herramienta detecta y corrige <strong>áreas semitransparentes</strong> en imágenes PNG. 
-  Te permite visualizar dónde están los píxeles con transparencia parcial y generar una versión 
-  limpia lista para impresión DTF u otros usos profesionales.
-</p>
+  <h1 class="text-3xl font-bold text-blue-400 mb-4">Limpiador de Semitonos</h1>
+  <p class="text-gray-400 max-w-2xl text-center mb-6">
+    Esta herramienta detecta y corrige <strong>áreas semitransparentes</strong> en imágenes PNG.
+    Te permite visualizar dónde están los píxeles con transparencia parcial y generar una versión
+    limpia lista para impresión DTF u otros usos profesionales.
+  </p>
+
   <!-- Zona de carga -->
-  <div id="drop-zone" 
-       class="w-full max-w-xl border-2 border-dashed border-gray-400 bg-white rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 transition">
-    <p class="text-gray-600 mb-2">Arrastra una imagen PNG aquí o</p>
+  <div id="drop-zone"
+       class="w-full max-w-xl border-2 border-dashed border-gray-600 bg-gray-800 rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-gray-700 transition">
+    <p class="text-gray-400 mb-2">Arrastra una imagen PNG aquí o</p>
     <input type="file" id="upload" accept="image/png" class="hidden">
-    <button onclick="document.getElementById('upload').click()" 
+    <button onclick="document.getElementById('upload').click()"
             class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2">
       <i data-lucide="upload"></i> Subir Imagen
     </button>
@@ -32,205 +34,212 @@
 
   <!-- Botones -->
   <div class="mt-6 flex flex-wrap gap-4 justify-center">
-    <button id="process" disabled 
-            class="bg-green-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50">
+    <button id="process" disabled
+            class="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50">
       <i data-lucide="sparkles"></i> Procesar
     </button>
-    <button id="toggle" disabled 
-            class="bg-yellow-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50">
+    <button id="toggle" disabled
+            class="bg-yellow-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50">
       <i data-lucide="eye"></i> Overlay
     </button>
-    <button id="clean" disabled 
-            class="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50">
+    <button id="clean" disabled
+            class="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50">
       <i data-lucide="brush"></i> Limpiar
     </button>
   </div>
 
   <!-- Vista antes/después -->
   <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
-    <div class="bg-white p-4 rounded-xl shadow-md flex flex-col items-center">
+    <div class="bg-gray-800 p-4 rounded-xl shadow-md flex flex-col items-center">
       <h2 class="font-semibold mb-2">📥 Imagen Original</h2>
-      <canvas id="canvasOriginal" class="max-w-full rounded-lg border"></canvas>
+      <canvas id="canvasOriginal" class="max-w-full rounded-lg border border-gray-600"></canvas>
     </div>
-    <div class="bg-white p-4 rounded-xl shadow-md flex flex-col items-center">
+    <div class="bg-gray-800 p-4 rounded-xl shadow-md flex flex-col items-center">
       <h2 class="font-semibold mb-2">🧹 Imagen Procesada</h2>
-      <canvas id="canvasProcessed" class="max-w-full rounded-lg border"></canvas>
+      <canvas id="canvasProcessed" class="max-w-full rounded-lg border border-gray-600"></canvas>
     </div>
   </div>
 
+  <!-- Info semitransparencias -->
+  <p id="info" class="mt-4 text-gray-400"></p>
+
   <!-- Toast -->
-  <div id="toast" class="fixed bottom-5 right-5 bg-gray-800 text-white px-4 py-2 rounded-lg opacity-0 pointer-events-none transition"></div>
+  <div id="toast" class="fixed bottom-5 right-5 bg-gray-700 text-white px-4 py-2 rounded-lg opacity-0 pointer-events-none transition"></div>
 
   <script>
-  const upload = document.getElementById('upload');
-  const dropZone = document.getElementById('drop-zone');
-  const processBtn = document.getElementById('process');
-  const toggleBtn = document.getElementById('toggle');
-  const cleanBtn = document.getElementById('clean');
-  const canvasOriginal = document.getElementById('canvasOriginal');
-  const ctxOriginal = canvasOriginal.getContext('2d');
-  const canvasProcessed = document.getElementById('canvasProcessed');
-  const ctxProcessed = canvasProcessed.getContext('2d');
-  const toast = document.getElementById('toast');
+    const upload = document.getElementById('upload');
+    const dropZone = document.getElementById('drop-zone');
+    const processBtn = document.getElementById('process');
+    const toggleBtn = document.getElementById('toggle');
+    const cleanBtn = document.getElementById('clean');
+    const canvasOriginal = document.getElementById('canvasOriginal');
+    const ctxOriginal = canvasOriginal.getContext('2d');
+    const canvasProcessed = document.getElementById('canvasProcessed');
+    const ctxProcessed = canvasProcessed.getContext('2d');
+    const toast = document.getElementById('toast');
+    const info = document.getElementById('info');
 
-  let originalImage = null;
-  let overlayData = null;
-  let overlayVisible = true;
-  let semitransparentPixels = 0;
+    let originalImage = null;
+    let overlayData = null;
+    let overlayVisible = true;
+    let semitransparentPixels = 0;
 
-  function showToast(msg) {
-    toast.textContent = msg;
-    toast.classList.remove("opacity-0");
-    toast.classList.add("opacity-100");
-    setTimeout(() => {
-      toast.classList.remove("opacity-100");
-      toast.classList.add("opacity-0");
-    }, 3000);
-  }
-
-  // Drag & Drop
-  dropZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    dropZone.classList.add("border-blue-500", "bg-blue-50");
-  });
-
-  dropZone.addEventListener('dragleave', () => {
-    dropZone.classList.remove("border-blue-500", "bg-blue-50");
-  });
-
-  dropZone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropZone.classList.remove("border-blue-500", "bg-blue-50");
-    const file = e.dataTransfer.files[0];
-    if (file && file.type === "image/png") {
-      loadImage(file);
-    } else {
-      showToast("⚠️ Solo se permiten imágenes PNG.");
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.remove("opacity-0");
+      toast.classList.add("opacity-100");
+      setTimeout(() => {
+        toast.classList.remove("opacity-100");
+        toast.classList.add("opacity-0");
+      }, 3000);
     }
-  });
 
-  // Subida normal
-  upload.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) loadImage(file);
-  });
+    // Drag & Drop
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add("border-blue-400", "bg-gray-700");
+    });
 
-  function loadImage(file) {
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const img = new Image();
-      img.onload = () => {
-        canvasOriginal.width = img.width;
-        canvasOriginal.height = img.height;
-        canvasProcessed.width = img.width;
-        canvasProcessed.height = img.height;
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove("border-blue-400", "bg-gray-700");
+    });
 
-        ctxOriginal.drawImage(img, 0, 0);
-        ctxProcessed.drawImage(img, 0, 0);
-
-        originalImage = img;
-        processBtn.disabled = false;
-        toggleBtn.disabled = true;
-        cleanBtn.disabled = true;
-        showToast("✅ Imagen cargada correctamente.");
-      };
-      img.src = ev.target.result;
-    };
-    reader.readAsDataURL(file);
-  }
-
-  // Procesar semitransparencias
-  processBtn.addEventListener('click', () => {
-    if (!originalImage) return;
-    ctxProcessed.drawImage(originalImage, 0, 0);
-    const imgData = ctxProcessed.getImageData(0, 0, canvasProcessed.width, canvasProcessed.height);
-    const data = imgData.data;
-
-    overlayData = ctxProcessed.createImageData(imgData);
-    semitransparentPixels = 0;
-
-    for (let i = 0; i < data.length; i += 4) {
-      const alpha = data[i + 3];
-      if (alpha > 0 && alpha < 255) {
-        overlayData.data[i] = 255;
-        overlayData.data[i + 1] = 0;
-        overlayData.data[i + 2] = 0;
-        overlayData.data[i + 3] = 128;
-        semitransparentPixels++;
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove("border-blue-400", "bg-gray-700");
+      const file = e.dataTransfer.files[0];
+      if (file && file.type === "image/png") {
+        loadImage(file);
       } else {
-        overlayData.data[i + 3] = 0;
+        showToast("⚠️ Solo se permiten imágenes PNG.");
       }
+    });
+
+    // Subida normal
+    upload.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) loadImage(file);
+    });
+
+    function loadImage(file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          canvasOriginal.width = img.width;
+          canvasOriginal.height = img.height;
+          canvasProcessed.width = img.width;
+          canvasProcessed.height = img.height;
+
+          ctxOriginal.drawImage(img, 0, 0);
+          ctxProcessed.drawImage(img, 0, 0);
+
+          originalImage = img;
+          processBtn.disabled = false;
+          toggleBtn.disabled = true;
+          cleanBtn.disabled = true;
+          info.textContent = '';
+          showToast("✅ Imagen cargada correctamente.");
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
     }
 
-    ctxProcessed.putImageData(imgData, 0, 0);
-    ctxProcessed.putImageData(overlayData, 0, 0);
+    // Procesar semitransparencias
+    processBtn.addEventListener('click', () => {
+      if (!originalImage) return;
+      ctxProcessed.drawImage(originalImage, 0, 0);
+      const imgData = ctxProcessed.getImageData(0, 0, canvasProcessed.width, canvasProcessed.height);
+      const data = imgData.data;
 
-    toggleBtn.disabled = false;
-    cleanBtn.disabled = false;
-    showToast(`🔍 Detectados ${semitransparentPixels} píxeles semitransparentes.`);
-  });
+      overlayData = ctxProcessed.createImageData(imgData);
+      semitransparentPixels = 0;
 
-  // Toggle overlay
-  toggleBtn.addEventListener('click', () => {
-    overlayVisible = !overlayVisible;
-    ctxProcessed.drawImage(originalImage, 0, 0);
-    if (overlayVisible && overlayData) {
+      for (let i = 0; i < data.length; i += 4) {
+        const alpha = data[i + 3];
+        if (alpha > 0 && alpha < 255) {
+          overlayData.data[i] = 255;
+          overlayData.data[i + 1] = 0;
+          overlayData.data[i + 2] = 0;
+          overlayData.data[i + 3] = 128;
+          semitransparentPixels++;
+        } else {
+          overlayData.data[i + 3] = 0;
+        }
+      }
+
+      ctxProcessed.putImageData(imgData, 0, 0);
       ctxProcessed.putImageData(overlayData, 0, 0);
-      showToast("👁️ Overlay activado.");
-    } else {
-      showToast("🙈 Overlay desactivado.");
-    }
-  });
 
-  // Obtener siguiente nombre de archivo (almacenado en localStorage)
-  function getNextFilename() {
-    try {
-      const key = 'limpiador_download_index';
-      let idx = parseInt(localStorage.getItem(key) || '0', 10);
-      if (isNaN(idx)) idx = 0;
-      idx = idx + 1;
-      localStorage.setItem(key, idx);
-      return `imagen_limpia_${idx}.png`;
-    } catch (e) {
-      // Si localStorage falla (modo privado o bloqueo), usar timestamp
-      const ts = Date.now();
-      return `imagen_limpia_${ts}.png`;
-    }
-  }
+      toggleBtn.disabled = false;
+      cleanBtn.disabled = false;
+      info.textContent = `🔍 Total de píxeles semitransparentes detectados: ${semitransparentPixels}`;
+      showToast(`🔍 Detectados ${semitransparentPixels} píxeles semitransparentes.`);
+    });
 
-  // Limpiar imagen y descargar con nombre incremental
-  cleanBtn.addEventListener('click', () => {
-    if (!originalImage) return;
+    // Toggle overlay
+    toggleBtn.addEventListener('click', () => {
+      overlayVisible = !overlayVisible;
+      ctxProcessed.drawImage(originalImage, 0, 0);
+      if (overlayVisible && overlayData) {
+        ctxProcessed.putImageData(overlayData, 0, 0);
+        showToast("👁️ Overlay activado.");
+      } else {
+        showToast("🙈 Overlay desactivado.");
+      }
+    });
 
-    const tempCanvas = document.createElement('canvas');
-    const tempCtx = tempCanvas.getContext('2d');
-    tempCanvas.width = originalImage.width;
-    tempCanvas.height = originalImage.height;
-    tempCtx.drawImage(originalImage, 0, 0);
-
-    const imgData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-    const data = imgData.data;
-
-    for (let i = 0; i < data.length; i += 4) {
-      if (data[i + 3] > 0 && data[i + 3] < 255) {
-        data[i + 3] = 255;
+    // Obtener siguiente nombre de archivo
+    function getNextFilename() {
+      try {
+        const key = 'limpiador_download_index';
+        let idx = parseInt(localStorage.getItem(key) || '0', 10);
+        if (isNaN(idx)) idx = 0;
+        idx = idx + 1;
+        localStorage.setItem(key, idx);
+        return `imagen_limpia_${idx}.png`;
+      } catch (e) {
+        const ts = Date.now();
+        return `imagen_limpia_${ts}.png`;
       }
     }
 
-    ctxProcessed.putImageData(imgData, 0, 0);
+    // Limpiar imagen y descargar
+    cleanBtn.addEventListener('click', () => {
+      if (!originalImage) return;
 
-    // Descargar automáticamente con nombre incremental
-    const filename = getNextFilename();
-    const link = document.createElement('a');
-    link.download = filename;
-    link.href = canvasProcessed.toDataURL();
-    link.click();
+      const tempCanvas = document.createElement('canvas');
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCanvas.width = originalImage.width;
+      tempCanvas.height = originalImage.height;
+      tempCtx.drawImage(originalImage, 0, 0);
 
-    showToast(`🧹 Se limpiaron ${semitransparentPixels} píxeles. Guardado como ${filename}`);
-  });
+      const imgData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+      const data = imgData.data;
 
-  // Cargar íconos Lucide
-  lucide.createIcons();
+      let cleanedPixels = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i + 3] > 0 && data[i + 3] < 255) {
+          data[i + 3] = 255;
+          cleanedPixels++;
+        }
+      }
+
+      ctxProcessed.putImageData(imgData, 0, 0);
+
+      const filename = getNextFilename();
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = canvasProcessed.toDataURL();
+      link.click();
+
+      showToast(`🧹 Se limpiaron ${cleanedPixels} píxeles. Guardado como ${filename}`);
+      info.textContent = `✅ Se limpiaron ${cleanedPixels} píxeles semitransparentes.`;
+    });
+
+    // Cargar íconos Lucide
+    lucide.createIcons();
   </script>
 </body>
 </html>
