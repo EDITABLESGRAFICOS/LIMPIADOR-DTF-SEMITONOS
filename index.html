@@ -103,21 +103,33 @@ toggleBtn.addEventListener('click', () => {
     }
 });
 
-// Limpiar semitransparencias
+// Limpiar semitransparencias (corrige guardar overlay)
 cleanBtn.addEventListener('click', () => {
     if (!originalImage) return;
 
-    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    // Crear canvas temporal con la imagen original
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCanvas.width = originalImage.width;
+    tempCanvas.height = originalImage.height;
+    tempCtx.drawImage(originalImage, 0, 0);
+
+    const imgData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
     const data = imgData.data;
 
+    // Limpiar los píxeles semitransparentes
     for (let i = 0; i < data.length; i += 4) {
         if (data[i + 3] > 0 && data[i + 3] < 255) {
             data[i + 3] = 255;
         }
     }
 
+    // Dibujar la imagen limpia en el canvas principal
+    canvas.width = tempCanvas.width;
+    canvas.height = tempCanvas.height;
     ctx.putImageData(imgData, 0, 0);
 
+    // Descargar imagen limpia
     const link = document.createElement('a');
     link.download = 'imagen_limpia.png';
     link.href = canvas.toDataURL();
